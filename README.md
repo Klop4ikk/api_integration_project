@@ -18,8 +18,9 @@
 ### 1. Установка
 ```bash
 # Клонируйте проект
-git clone https://github.com/ваш-репозиторий/api-project.git
+git clone https://github.com/api_integration_project/api-project.git
 cd api-project
 
 # Установите зависимости
 pip install -r requirements.txt
+

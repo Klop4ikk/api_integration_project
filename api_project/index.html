@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тестирование API книг</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .result {
+            background: #f9f9f9;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+        .error {
+            color: #d32f2f;
+            background: #ffebee;
+        }
+        .success {
+            color: #388e3c;
+            background: #e8f5e9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📚 Тестирование API книг</h1>
+        
+        <div class="section">
+            <h3>1. Получить все книги</h3>
+            <button onclick="getAllBooks()">GET /api/books</button>
+            <div id="result1" class="result"></div>
+        </div>
+        
+        <div class="section">
+            <h3>2. Получить книгу по ID</h3>
+            <input type="number" id="bookId" placeholder="Введите ID" value="1">
+            <button onclick="getBookById()">GET /api/books/{id}</button>
+            <div id="result2" class="result"></div>
+        </div>
+        
+        <div class="section">
+            <h3>3. Добавить новую книгу</h3>
+            <input type="text" id="bookTitle" placeholder="Название книги" value="Новая книга">
+            <input type="text" id="bookAuthor" placeholder="Автор" value="Автор">
+            <button onclick="addBook()">POST /api/books</button>
+            <div id="result3" class="result"></div>
+        </div>
+        
+        <div class="section">
+            <h3>4. Тест ошибок</h3>
+            <button onclick="testNonExisting()">Запросить несуществующую книгу (ID=999)</button>
+            <button onclick="testBadRequest()">Отправить плохой запрос</button>
+            <div id="result4" class="result"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://127.0.0.1:5000/api';
+        
+        function displayResult(elementId, data, isError = false) {
+            const element = document.getElementById(elementId);
+            element.textContent = JSON.stringify(data, null, 2);
+            element.className = `result ${isError ? 'error' : 'success'}`;
+        }
+        
+        async function getAllBooks() {
+            try {
+                const response = await fetch(`${API_BASE}/books`);
+                const data = await response.json();
+                displayResult('result1', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    data: data
+                });
+            } catch (error) {
+                displayResult('result1', { error: error.message }, true);
+            }
+        }
+        
+        async function getBookById() {
+            const bookId = document.getElementById('bookId').value;
+            try {
+                const response = await fetch(`${API_BASE}/books/${bookId}`);
+                const data = await response.json();
+                displayResult('result2', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    data: data
+                });
+            } catch (error) {
+                displayResult('result2', { error: error.message }, true);
+            }
+        }
+        
+        async function addBook() {
+            const title = document.getElementById('bookTitle').value;
+            const author = document.getElementById('bookAuthor').value;
+            
+            try {
+                const response = await fetch(`${API_BASE}/books`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ title, author })
+                });
+                const data = await response.json();
+                displayResult('result3', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    data: data
+                });
+            } catch (error) {
+                displayResult('result3', { error: error.message }, true);
+            }
+        }
+        
+        async function testNonExisting() {
+            try {
+                const response = await fetch(`${API_BASE}/books/999`);
+                const data = await response.json();
+                displayResult('result4', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    data: data
+                }, response.status !== 200);
+            } catch (error) {
+                displayResult('result4', { error: error.message }, true);
+            }
+        }
+        
+        async function testBadRequest() {
+            try {
+                const response = await fetch(`${API_BASE}/books`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ wrong: 'data' })
+                });
+                const data = await response.json();
+                displayResult('result4', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    data: data
+                }, response.status !== 201);
+            } catch (error) {
+                displayResult('result4', { error: error.message }, true);
+            }
+        }
+    </script>
+</body>
+</html>
